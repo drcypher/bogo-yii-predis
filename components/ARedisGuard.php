@@ -8,22 +8,16 @@
 class ARedisGuard extends ARedisEntity
 {
 	/**
-	 * The number of micro seconds to sleep for between poll requests.
-	 * Defaults to half a second.
-	 * @var integer
-	 */
-	public $blockTimeout = 30.0;
-
-	/**
 	 * Block until a client calls notify().
 	 *
+	 * @param integer $blockTimeoutSeconds Block timeout. If zero, blocks for ever.
 	 * @return mixed Null on timeout, some value pushed through notify() otherwise.
 	 */
-	public function wait()
+	public function wait($blockTimeoutSeconds = 0.0)
 	{
 		$redis = $this->getConnection()->getClient();
 
-		$element = $redis->blpop($this->name, $this->blockTimeout);
+		$element = $redis->blpop($this->name, $blockTimeoutSeconds);
 
 		return $element ? $element[1] : null;
 	}
@@ -31,7 +25,7 @@ class ARedisGuard extends ARedisEntity
 	/**
 	 * Wake up a client blocked on wait()
 	 *
-	 * @param mixed $value
+	 * @param mixed $value Value to pass to wait()ers.
 	 * @return integer
 	 */
 	public function notify($value = 1)
