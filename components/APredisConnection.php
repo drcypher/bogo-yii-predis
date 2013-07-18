@@ -105,6 +105,13 @@ class APredisConnection extends CApplicationComponent
 	public function getClient()
 	{
 		if ($this->_client === null) {
+			if($this->enableProfiling) {
+				$profileToken = 'bogo.yii.predis.APredisConnection.create()';
+				Yii::beginProfile($profileToken, 'bogo.yii.predis.APredisConnection');
+			} else {
+				$profileToken = null;
+			}
+
 			// Create instance
 			$this->_client = new Predis\Client($this->connectionParameters, $this->clientOptions);
 
@@ -123,6 +130,10 @@ class APredisConnection extends CApplicationComponent
 
 			foreach ($this->defineCommands as $alias=>$command) {
 				$profile->defineCommand($alias, $command);
+			}
+
+			if ($profileToken) {
+				Yii::endProfile($profileToken, 'bogo.yii.predis.APredisConnection');
 			}
 		}
 
@@ -147,7 +158,7 @@ class APredisConnection extends CApplicationComponent
 		$result = call_user_func_array(array($this->getClient(), $method), $args);
 
 		if ($profileToken) {
-			Yii::endProfile($profileToken,'system.db.CDbCommand.execute');
+			Yii::endProfile($profileToken, 'bogo.yii.predis.APredisConnection');
 		}
 
 		return $result;
