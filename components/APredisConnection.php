@@ -70,6 +70,13 @@ class APredisConnection extends CApplicationComponent
 	public $defineCommands = array();
 
 	/**
+	 * Enable execution profiling.
+	 *
+	 * @var boolean
+	 */
+	public $enableProfiling = false;
+
+	/**
 	 * Predis client instance.
 	 *
 	 * @var Predis\Client
@@ -127,7 +134,23 @@ class APredisConnection extends CApplicationComponent
 	 */
 	public function __call($method, $args)
 	{
-		return call_user_func_array(array($this->getClient(), $method), $args);
+		if($this->enableProfiling) {
+			$profileToken = 'bogo.yii.predis.APredisConnection.'.$method.'()';
+		} else {
+			$profileToken = null;
+		}
+
+		if ($profileToken) {
+			Yii::beginProfile($profileToken, 'bogo.yii.predis.APredisConnection');
+		}
+
+		$result = call_user_func_array(array($this->getClient(), $method), $args);
+
+		if ($profileToken) {
+			Yii::endProfile($profileToken,'system.db.CDbCommand.execute');
+		}
+
+		return $result;
 	}
 
 }
